@@ -24,31 +24,40 @@ func basicAuth(user string, pswd string) string {
 
 // get keys from dotenv
 func login() (string, string, string) {
+
 	subDomain := os.Getenv("SUBDOMAIN")
+	if subDomain == "" {
+		log.Fatalln("login failed: to retrieve subdomain from ENV file.")
+	}
 	email := os.Getenv("EMAIL")
+	if email == "" {
+		log.Fatalln("login failed: to retrieve email from ENV file.")
+	}
 	pswd := os.Getenv("PSWD")
-	// Error on missing credentials
-	if subDomain == "" || email == "" || pswd == "" {
-		log.Panicln("Subdomain, email, or password missing from .env file.")
+	if pswd == "" {
+		log.Fatalln("login failed: to retrieve email from ENV file.")
 	}
 	return subDomain, email, pswd
+
 }
 
-func Login(method string, api string) *http.Response {
-	subDomain, email, pswd := login()
+// Prepare url and client with proper auth
+func Login(method string, api string) (*http.Response, error) {
+	var subDomain, email, pswd string
+	subDomain, email, pswd = login()
 	client := &http.Client{}
 	base := createBaseUrl(subDomain)
 	req, err := http.NewRequest(method, base+api, nil)
 	if err != nil {
-		log.Fatalln("Error - creating http new request - ", err)
+		return nil, fmt.Errorf("Login failed to make a http new request: %v", err)
 	}
 	req.Header.Add("Authorization", "Basic "+basicAuth(email, pswd))
 	req.Header.Add("Content-Type", "application/json")
 	log.Println(req.URL.String())
 	resp, err := client.Do(req)
 	if err != nil {
-		log.Fatalln("Error - creating http new response - ", err)
+		return nil, fmt.Errorf("Login error, client could not do request: %v", err)
 	}
-	return resp
+	return resp, nil
 
 }
