@@ -49,14 +49,14 @@ func Login(method string, api string) (*http.Response, error) {
 	base := createBaseUrl(subDomain)
 	req, err := http.NewRequest(method, base+api, nil)
 	if err != nil {
-		return nil, fmt.Errorf("Login failed to make a http new request: %v", err)
+		return nil, fmt.Errorf("http new request error: %v", err)
 	}
 	req.Header.Add("Authorization", "Basic "+basicAuth(email, pswd))
 	req.Header.Add("Content-Type", "application/json")
 	log.Println(req.URL.String())
 	resp, err := client.Do(req)
 	if err != nil {
-		return nil, fmt.Errorf("Login error, client could not do request: %v", err)
+		return nil, fmt.Errorf("client failed to execute request on url %v : %v", req.URL.String(), err)
 	}
 	return resp, nil
 
