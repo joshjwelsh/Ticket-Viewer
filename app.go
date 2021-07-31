@@ -6,12 +6,7 @@ import (
 	"log"
 )
 
-const templ = `Total Tickets: {{.Tickets | size }}
-
-
-
-`
-const verbose bool = true
+const verbose bool = false
 
 func main() {
 	textPtr := flag.String("text", "", "Text to parse.")

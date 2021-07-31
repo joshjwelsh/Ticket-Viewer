@@ -44,14 +44,6 @@ func Display(ticket []Ticket) {
 	}
 	fmt.Println("Exiting ticket viewer...Thanks for using it!")
 }
-func displayOne(ticket Ticket) {
-	t, err := template.ParseFiles("templates/ticket.tmpl")
-	if err != nil {
-		log.Fatalf("Error with template: %v", err)
-	}
-	t.Execute(os.Stdout, ticket)
-
-}
 
 func selectOne(ticket []Ticket) {
 	for {
@@ -84,7 +76,7 @@ func selectOnePrompt(ticket []Ticket) int {
 	if choice <= 0 {
 		log.Fatalf("Invalid ticket selection. Enter a value between %v and %v.", 1, len(ticket))
 	}
-	if choice > len(ticket) {
+	if choice >= len(ticket) {
 		log.Fatalf("Invalid ticket selection. Enter a value between %v and %v, inclusively.", 1, len(ticket))
 	}
 	return choice
@@ -114,7 +106,7 @@ func display(page *Page) {
 	}
 }
 
-//
+// handle listing tickets on pages
 func paginate(ticket []Ticket) {
 
 	page := NewPage(ticket)
