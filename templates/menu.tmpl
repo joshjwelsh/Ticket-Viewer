@@ -1,0 +1,12 @@
+{{if .Main}}
+Welcome to Ticket Viewer
+Please enter a number from the main menu:
+{{ .Opt1 | printf "%-25v" }}
+{{ .Opt2 | printf "%-25v" }} 
+{{ .Opt3 | printf "%-25v" }}
+{{end}}
+{{if .ContAll}}
+{{ .Opt1 | printf "%-25v" }}
+{{ .Opt2 | printf "%-25v" }} 
+{{ .Opt3 | printf "%-25v" }}
+{{end}}
