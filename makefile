@@ -5,4 +5,4 @@ build:
 	go build . 
 
 build+:
-	go build . && ./viewer
+	go build . && ./main
