@@ -10,3 +10,7 @@ Please enter a number from the main menu:
 {{ .Opt2 | printf "%-25v" }} 
 {{ .Opt3 | printf "%-25v" }}
 {{end}}
+{{if .ViewOne}}
+{{ .Opt1 | printf "%-25v" }}
+{{ .Opt3 | printf "%-25v" }}
+{{end}}
