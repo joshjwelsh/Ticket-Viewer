@@ -6,10 +6,12 @@ import (
 	"log"
 )
 
-// Endpoints
-const (
-	get_all_tickets = "tickets"
-)
+const templ = `Total Tickets: {{.Tickets | size }}
+
+
+
+`
+const verbose bool = true
 
 func main() {
 	textPtr := flag.String("text", "", "Text to parse.")
@@ -20,17 +22,14 @@ func main() {
 		log.Fatalf("Main failed on Get: %v", err)
 
 	}
-
-	for idx, ticket := range tickets.Tickets {
-		fmt.Printf("%v) %v\n", idx, ticket.Subject)
-	}
+	Display(tickets.Tickets)
 
 }
 
-func Get() (Ticket, error) {
+func Get() (*TicketResponse, error) {
 	GetAllTickets, err := GetAllTickets()()
 	if err != nil {
-		return Ticket{}, fmt.Errorf("Get all Tickets call failed: %v", err)
+		return &TicketResponse{}, fmt.Errorf("Get all Tickets call failed: %v", err)
 	}
 	return GetAllTickets, nil
 }

@@ -1,13 +1,18 @@
 package main
 
-type Ticket struct {
-	Tickets []Tickets `json:"tickets"`
+import (
+	"log"
+	"math"
+)
+
+type TicketResponse struct {
+	Tickets []Ticket `json:"tickets"`
 }
 
-type Tickets struct {
+type Ticket struct {
 	AllowAttachments bool     `json:"allow_attachments,omitempty"`
 	AllowChannelBack bool     `json:"allow_channelback,omitempty"`
-	AssigneeId       int      `json:"assigneed_id,omitempty"`
+	AssigneeId       int      `json:"assignee_id,omitempty"`
 	BrandId          int      `json:"brand_id,omitempty"`
 	CollaboratorIds  []int    `json:"collaborator_ids,omitempty"`
 	Collaborators    []string `json:"collaborators,omitempty"`
@@ -53,7 +58,7 @@ type Via struct {
 }
 
 type SatisfactionRating struct {
-	AssigneeId  int    `json:"assigneed_id"`
+	AssigneeId  int    `json:"assignee_id"`
 	Comment     string `json:",omitempty"`
 	CreatedAt   string `json:"created_at,omitempty"`
 	GroupId     int    `json:"group_id"`
@@ -65,4 +70,115 @@ type SatisfactionRating struct {
 	TicketId    int    `json:"ticket_id"`
 	UpdatedAt   string `json:"updated_at,omitempty"`
 	Url         string `json:",omitempty"`
+}
+type Menu struct {
+	Main    bool
+	ContAll bool
+	ViewAll bool
+	Opt1    string
+	Opt2    string
+	Opt3    string
+}
+
+type Page struct {
+	MaxPageSize  int
+	CurrentPage  int
+	CanGoBack    bool
+	CanGoForward bool
+	Start        int
+	End          int
+	CurrentSlice []Ticket
+	FullSlice    []Ticket
+}
+
+func findMaxPage(size int) int {
+	val := float64(size) / float64(MAX_PAGE_SIZE)
+	return int(math.Ceil(val))
+}
+func NewPage(t []Ticket) *Page {
+	max := findMaxPage(len(t))
+	return &Page{
+		MaxPageSize:  max,
+		CurrentPage:  1,
+		CanGoBack:    false,
+		CanGoForward: true,
+		Start:        0,
+		End:          MAX_PAGE_SIZE,
+		CurrentSlice: t[0:MAX_PAGE_SIZE],
+		FullSlice:    t,
+	}
+}
+
+func page(ticket []Ticket, start int, end int) []Ticket {
+	if start < 0 || end < 0 {
+		log.Fatalf("Page start %v and end %v error, negative values for slice", start, end)
+	}
+	if start > end {
+		log.Printf("Start %v is greater than end %v", start, end)
+		return ticket
+	}
+	return ticket[start:end]
+}
+
+func updateEnd(end int, size int) int {
+	temp := end + MAX_PAGE_SIZE
+	if temp > size {
+		return temp % size
+	} else {
+		return MAX_PAGE_SIZE
+	}
+}
+
+func (p *Page) PageForward() {
+	if p.CanGoForward == false {
+		return
+	}
+	p.CurrentPage += 1
+	p.Start += MAX_PAGE_SIZE
+	p.End += updateEnd(p.End, len(p.FullSlice))
+	p.CurrentSlice = page(p.FullSlice, p.Start, p.End)
+	if p.CurrentPage == p.MaxPageSize {
+		p.CanGoForward = false
+	}
+	if verbose {
+		log.Printf("Page Up: start %v end %v\n", p.Start, p.End)
+	}
+
+}
+func (p *Page) PageBack() {
+
+	if p.CanGoBack == false {
+		if p.CurrentPage != 1 {
+			p.CanGoBack = true
+		} else if p.CurrentPage == 1 {
+			return
+		}
+	}
+	p.CurrentPage -= 1
+	p.Start -= MAX_PAGE_SIZE
+	p.End -= MAX_PAGE_SIZE
+	p.CurrentSlice = page(p.FullSlice, p.Start, p.End)
+	if p.CurrentPage == 1 {
+		p.CanGoBack = false
+	}
+	if verbose {
+		log.Printf("Page down: start %v end %v\n", p.Start, p.End)
+	}
+}
+func CreateMainMenu() Menu {
+	return Menu{
+		Main: true,
+		Opt1: "1)\tList all Tickets",
+		Opt2: "2)\tView a ticket",
+		Opt3: "3)\tExit",
+	}
+}
+
+func CreateViewAllMenu() Menu {
+	return Menu{
+		ContAll: true,
+		Opt1:    "1)\tNext Page",
+		Opt2:    "2)\tPrevious Page",
+		Opt3:    "3)\tExit",
+	}
 }
