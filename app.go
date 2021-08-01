@@ -6,8 +6,6 @@ import (
 	"log"
 )
 
-const verbose bool = false
-
 func main() {
 	textPtr := flag.String("text", "", "Text to parse.")
 	fmt.Println(textPtr)

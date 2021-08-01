@@ -8,17 +8,6 @@ import (
 	"text/template"
 )
 
-const (
-	INVALID_VALUE int = 99
-	MAX_PAGE_SIZE int = 5
-)
-
-const (
-	MENU_OPT_1 int = 1
-	MENU_OPT_2 int = 2
-	MENU_OPT_3 int = 3
-)
-
 // handles display updates
 func Display(ticket []Ticket) {
 	for {
@@ -49,7 +38,7 @@ func selectOne(ticket []Ticket) {
 	for {
 		choice := selectOnePrompt(ticket)
 		clear()
-		page := NewPage(ticket)
+		page := NewPage(ticket)()
 		page.All = false
 		page.Select = choice
 		display(page)
@@ -109,7 +98,7 @@ func display(page *Page) {
 // handle listing tickets on pages
 func paginate(ticket []Ticket) {
 
-	page := NewPage(ticket)
+	page := NewPage(ticket)()
 	for {
 		display(page)
 		menu(CreateViewAllMenu())

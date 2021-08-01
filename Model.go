@@ -90,19 +90,31 @@ type Page struct {
 	Select       int
 }
 
-func NewPage(t []Ticket) *Page {
-	max := findMaxPage(len(t))
-	return &Page{
-		MaxPageSize:  max,
-		CurrentPage:  1,
-		CanGoBack:    false,
-		CanGoForward: true,
-		Start:        0,
-		End:          MAX_PAGE_SIZE,
-		CurrentSlice: t[0:MAX_PAGE_SIZE],
-		FullSlice:    t,
-		All:          true,
+func NewPage(t []Ticket) func() *Page {
+	var lastIdx int
+	size := len(t)
+	max := findMaxPage(size)
+	if max < MAX_PAGE_SIZE {
+		lastIdx = (max % MAX_PAGE_SIZE)
+	} else {
+		lastIdx = MAX_PAGE_SIZE
 	}
+	log.Println("Max ", lastIdx)
+	return func() *Page {
+		return &Page{
+			MaxPageSize:  max,
+			CurrentPage:  1,
+			CanGoBack:    false,
+			CanGoForward: true,
+			Start:        0,
+			End:          MAX_PAGE_SIZE,
+			CurrentSlice: t[0:lastIdx],
+			FullSlice:    t,
+			All:          true,
+		}
+
+	}
+
 }
 
 func (p *Page) PageForward() {
@@ -158,10 +170,10 @@ func page(ticket []Ticket, start int, end int) []Ticket {
 	return ticket[start:end]
 }
 
-func updateEnd(end int, size int) int {
-	temp := end + MAX_PAGE_SIZE
-	if temp > size {
-		return temp % size
+func updateEnd(currentEnd int, sizeOfSlice int) int {
+	overflow := currentEnd + MAX_PAGE_SIZE
+	if overflow > sizeOfSlice {
+		return sizeOfSlice % currentEnd
 	} else {
 		return MAX_PAGE_SIZE
 	}
