@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"os"
 )
 
 func main() {
@@ -15,7 +16,9 @@ func main() {
 		log.Fatalf("Main failed on Get: %v", err)
 
 	}
-	Display(tickets.Tickets)
+	if err := Display(os.Stdin, tickets.Tickets); err != nil {
+		log.Fatalf("Main failed on Display: %v", err)
+	}
 
 }
 

@@ -2,74 +2,105 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"log"
 	"os"
+	"os/exec"
 	"strconv"
+	"strings"
 	"text/template"
 )
 
 // handles display updates
-func Display(ticket []Ticket) {
+func Display(stdin io.Reader, ticket []Ticket) error {
 	for {
 		clear()
 		menu(CreateMainMenu())
-		choice, err := contMainMenu()
+		reader := CreateDevice(stdin)
+
+		choice, err := contMainMenu(reader)
 		if err != nil {
-			log.Fatalf("Continue from main menu failed while returning a value: %v", err)
+			return fmt.Errorf("Display crashed because of value returned by contMainMenu(): %v", err)
 		}
-		if choice == MENU_OPT_1 {
+		if strings.TrimRight(choice, "\n") == MENU_OPT_1 {
 			clear()
-			paginate(ticket)
+			reader = CreateDevice(stdin)
+			page := NewPage(ticket)()
+			paginate(reader, page)
 		}
-		if choice == MENU_OPT_2 {
+		if strings.TrimRight(choice, "\n") == MENU_OPT_2 {
 			clear()
-			selectOne(ticket)
+			reader = CreateDevice(stdin)
+			err := selectOne(reader, ticket)
+			if err != nil {
+				return fmt.Errorf("Display crashed because of value returned by selectOne(): %v", err)
+			}
 
 		}
-		if choice == MENU_OPT_3 {
+		if strings.TrimRight(choice, "\n") == MENU_OPT_3 {
+			fmt.Println("Exiting ticket viewer...Thanks for using it!")
 			break
 		}
 
 	}
-	fmt.Println("Exiting ticket viewer...Thanks for using it!")
+	return nil
 }
 
-func selectOne(ticket []Ticket) {
+func selectOne(reader ReadDevice, ticket []Ticket) error {
+
 	for {
-		choice := selectOnePrompt(ticket)
+
+		choice, err := selectOnePrompt(reader, ticket)
+		if err != nil {
+			return fmt.Errorf("Error in selectOne: %v", err)
+		}
 		clear()
 		page := NewPage(ticket)()
 		page.All = false
-		page.Select = choice
+		if ok := page.SelectOne(choice); ok == false {
+			continue
+		}
 		display(page)
 		menu(CreateSelectMenu())
-		choice, err := contViewSelect()
+		opt, err := contViewSelect(reader)
 		if err != nil {
-			log.Fatalf("Continue from view selected ticket failed while returning a value: %v", err)
+			return fmt.Errorf("Continue from view selected ticket failed while returning a value: %v", err)
 		}
-		if choice == MENU_OPT_3 {
+		if strings.TrimRight(opt, "\n") == MENU_OPT_3 {
 			break
 		}
 	}
+	return nil
 
 }
 
-func selectOnePrompt(ticket []Ticket) int {
-	fmt.Println("Enter a ticket number: ")
-	var input string
-	fmt.Scanln(&input)
-	choice, err := strconv.Atoi(input)
-	if err != nil {
-		log.Fatalf("Invalid ticket selection. Enter a value between %v and %v.", 1, len(ticket))
-	}
-	if choice <= 0 {
-		log.Fatalf("Invalid ticket selection. Enter a value between %v and %v.", 1, len(ticket))
-	}
-	if choice >= len(ticket) {
-		log.Fatalf("Invalid ticket selection. Enter a value between %v and %v, inclusively.", 1, len(ticket))
-	}
-	return choice
+func selectOnePrompt(reader ReadDevice, ticket []Ticket) (int, error) {
+	var choice int
+	for {
+		fmt.Println("Enter a ticket number: ")
+		// var input int
+		err := reader.GetInput()
+		log.Println("reader val:", reader.Input)
+		if err != nil {
+			return 0, fmt.Errorf("selectOnePrompt( ReadDevice, [] Ticket) returned an error: %v.", err)
+		}
+		// input, err :=
 
+		choice, err = strconv.Atoi(strings.TrimRight(reader.Input, "\n"))
+		if err != nil {
+			fmt.Printf("Invalid input for selecting ticket.\n")
+		}
+
+		if choice <= 0 {
+			fmt.Printf("Invalid ticket selection. Enter a value between %v and %v.", 1, len(ticket))
+		}
+		if choice > len(ticket) {
+			fmt.Printf("Invalid ticket selection. Enter a value between %v and %v, inclusively.", 1, len(ticket))
+		}
+		break
+
+	}
+	return choice, nil
 }
 
 // lists all tickets to stdout
@@ -96,81 +127,66 @@ func display(page *Page) {
 }
 
 // handle listing tickets on pages
-func paginate(ticket []Ticket) {
+func paginate(reader ReadDevice, page *Page) {
 
-	page := NewPage(ticket)()
+	// page := NewPage(ticket)()
 	for {
+
 		display(page)
+
 		menu(CreateViewAllMenu())
-		choice, err := contViewAll()
+		choice, err := contViewAll(reader)
+
 		if err != nil {
 			log.Fatalf("Continue from view all menu failed while returning a value: %v", err)
 		}
-		if choice == MENU_OPT_1 {
+		if strings.TrimRight(choice, "\n") == MENU_OPT_1 {
 			page.PageForward()
 		}
-		if choice == MENU_OPT_2 {
+		if strings.TrimRight(choice, "\n") == MENU_OPT_2 {
 			page.PageBack()
 		}
-		if choice == MENU_OPT_3 {
-			return
+		if strings.TrimRight(choice, "\n") == MENU_OPT_3 {
+			log.Fatalln("We are here1")
+			break
 
 		}
 	}
+	return
 
 }
 
 // Get input from user
-func contViewSelect() (int, error) {
-	var input string
-	fmt.Scanln(&input)
-	if input == "" {
-		return strconv.Atoi(input)
-	} else if input == "2" {
-		return INVALID_VALUE, nil
-	} else if input == "3" {
-		return strconv.Atoi(input)
-	} else {
-		return INVALID_VALUE, nil
+func contViewSelect(reader ReadDevice) (string, error) {
+	err := reader.GetInput()
+	if err != nil {
+		return "", fmt.Errorf("contViewSelect(io.Reader) got error from reader: %v", err)
 	}
-}
-func contViewAll() (int, error) {
+	return reader.Input, nil
 
-	var input string
-	fmt.Scanln(&input)
-	if input == "1" {
-
-		return strconv.Atoi(input)
-	} else if input == "2" {
-
-		return strconv.Atoi(input)
-	} else if input == "3" {
-
-		return strconv.Atoi(input)
-	} else {
-		return INVALID_VALUE, nil
-	}
 }
 
-func contMainMenu() (int, error) {
-
-	var input string
-	fmt.Scanln(&input)
-	if input == "1" {
-		return strconv.Atoi(input)
-	} else if input == "2" {
-		return strconv.Atoi(input)
-	} else if input == "3" {
-		return strconv.Atoi(input)
-	} else {
-		return INVALID_VALUE, nil
+func contViewAll(reader ReadDevice) (string, error) {
+	err := reader.GetInput()
+	if err != nil {
+		return "", fmt.Errorf("ContViewAll(io.Reader) got error from reader: %v", err)
 	}
+	return reader.Input, nil
 }
 
-// ASCII encoding for clear
+func contMainMenu(reader ReadDevice) (string, error) {
+	err := reader.GetInput()
+	if err != nil {
+		return "", fmt.Errorf("contMainMenu(io.Reader) got error from reader: %v", err)
+	}
+	return reader.Input, nil
+}
+
+// clear terminal
 func clear() {
-	const CLEAR_SCREEN string = "\033[H\033[2J"
-	fmt.Print(CLEAR_SCREEN)
+	c := exec.Command("clear")
+	c.Stdout = os.Stdout
+	c.Run()
 }
 
 // pass menu template a menu struct and execute

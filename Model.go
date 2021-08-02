@@ -78,16 +78,17 @@ type SatisfactionRating struct {
 
 // --------------------------------- Represents Page and update struct ---------------------------------------
 type Page struct {
-	MaxPageSize  int
-	CurrentPage  int
-	CanGoBack    bool
-	CanGoForward bool
-	Start        int
-	End          int
-	CurrentSlice []Ticket
-	FullSlice    []Ticket
-	All          bool
-	Select       int
+	MaxPageSize    int
+	CurrentPage    int
+	CanGoBack      bool
+	CanGoForward   bool
+	Start          int
+	End            int
+	CurrentSlice   []Ticket
+	FullSlice      []Ticket
+	All            bool
+	SelectedTicket Ticket
+	Select         int
 }
 
 func NewPage(t []Ticket) func() *Page {
@@ -99,7 +100,6 @@ func NewPage(t []Ticket) func() *Page {
 	} else {
 		lastIdx = MAX_PAGE_SIZE
 	}
-	log.Println("Max ", lastIdx)
 	return func() *Page {
 		return &Page{
 			MaxPageSize:  max,
@@ -177,6 +177,16 @@ func updateEnd(currentEnd int, sizeOfSlice int) int {
 	} else {
 		return MAX_PAGE_SIZE
 	}
+}
+func (p *Page) SelectOne(index int) bool {
+	p.Select = index
+	last := index - 1
+	if last >= 0 && last <= len(p.FullSlice)-1 {
+		p.SelectedTicket = p.FullSlice[last]
+		return true
+	}
+	return false
+
 }
 
 // -------------------------------------- Represents menu ------------------------------------
