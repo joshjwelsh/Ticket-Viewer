@@ -1,15 +1,13 @@
 package main
 
 import (
-	"flag"
-	"fmt"
 	"log"
 	"os"
 )
 
 func main() {
-	textPtr := flag.String("text", "", "Text to parse.")
-	fmt.Println(textPtr)
+	// textPtr := flag.String("text", "", "Text to parse.")
+	// fmt.Println(textPtr)
 
 	tickets, err := GetAllTickets()()
 	if err != nil {
