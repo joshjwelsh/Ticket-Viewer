@@ -1,6 +1,7 @@
 package main
 
 import (
+	"io"
 	"strings"
 	"testing"
 
@@ -104,51 +105,47 @@ func TestSelectOnePrompt_Errors(t *testing.T) {
 	}
 }
 
-// type MockTestPaginate struct {
-// 	ResultPaginate
-// 	Input []string
-// 	Size  []Ticket
-// }
-// type ResultPaginate struct {
-// 	start int
-// 	end   int
-// }
+func TestDisplay_Template(t *testing.T) {
+	test := make([]Ticket, 100)
+	page := NewPage(test)()
+	t.Run("Should return nil", func(t *testing.T) {
+		err := display(page)
+		assert.Nil(t, err)
+	})
 
-// func TestPaginate(t *testing.T) {
+}
 
-// 	tests := []MockTestPaginate{
-// 		{
-// 			ResultPaginate: ResultPaginate{
-// 				5,
-// 				10,
-// 			},
-// 			Input: []string{"1\n3\n3\n"},
-// 			Size:  make([]Ticket, 13),
-// 		},
-// 		{
-// 			ResultPaginate: ResultPaginate{
-// 				0,
-// 				5,
-// 			},
-// 			Input: []string{"1\n2\n3\n3\n"},
-// 			Size:  make([]Ticket, 200),
-// 		},
-// 	}
-// 	for _, test := range tests {
-// 		for _, s := range test.Input {
+func TestCont(t *testing.T) {
+	tests := []struct {
+		Input string
+	}{
+		{"100"},
+		{"BIGDOG"},
+		{"walrus"},
+	}
+	for _, test := range tests {
+		reader := MockStdin(test.Input)
+		device := CreateDevice(reader)
+		_, ok := cont(device)
+		assert.Nil(t, ok)
+	}
 
-// 			testDevice := CreateDevice(MockStdin(s))
-// 			page := NewPage(test.Size)()
+}
 
-// 			paginate(testDevice, page)
-// 			if page.Start != test.start {
-// 				t.Errorf("Paginate(ReadDevice, *Page) updated the Page struct incorrectly; expected %v but got %v", test.start, page.Start)
-// 			}
-// 		}
-// 	}
-// }
+func TestMenu(t *testing.T) {
+	testMenu := CreateMainMenu()
+	assert.NotPanics(t, func() {
+		menu(testMenu)
+	})
+}
 
-// func MockStdin(s string) io.Reader {
-// 	reader := strings.NewReader(s)
-// 	return reader
-// }
+func TestClear(t *testing.T) {
+	ok := clear()
+	assert.True(t, ok)
+
+}
+// Helper
+func MockStdin(s string) io.Reader {
+	reader := strings.NewReader(s)
+	return reader
+}

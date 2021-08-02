@@ -221,3 +221,36 @@ func TestUpdateEnd(t *testing.T) {
 		}
 	}
 }
+
+func TestSelectOne(t *testing.T) {
+	tests := []struct {
+		PageSize []Ticket
+		Index    int
+		Want     bool
+	}{
+		{
+			make([]Ticket, 100),
+			10,
+			true,
+		}, {
+			make([]Ticket, 100),
+			1010,
+			false,
+		}, {
+			make([]Ticket, 10),
+			-10,
+			false,
+		}, {
+			make([]Ticket, 50),
+			25,
+			true,
+		},
+	}
+	for _, test := range tests {
+		page := NewPage(test.PageSize)()
+		got := page.SelectOne(test.Index)
+		if got != test.Want {
+			t.Errorf("(*Page)SelectOne(int) was expected to return %v but returned %v with input size %v", test.Want, got, len(test.PageSize))
+		}
+	}
+}

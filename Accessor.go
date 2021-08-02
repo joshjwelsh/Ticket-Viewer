@@ -17,7 +17,6 @@ func GetAllTickets() func() (*TicketResponse, error) {
 		if err != nil {
 			return &ticketList, fmt.Errorf("Login failed: %v", err)
 		}
-		// getHeader(resp)
 		bytesBody, err := ioutil.ReadAll(resp.Body)
 		if err != nil {
 			return &ticketList, fmt.Errorf("ReadAll failed on resp.Body: %v ", err)
@@ -28,13 +27,6 @@ func GetAllTickets() func() (*TicketResponse, error) {
 		defer resp.Body.Close()
 		return &ticketList, nil
 
-	}
-
-}
-
-func getHeader(resp *http.Response) {
-	for key, val := range resp.Header {
-		fmt.Printf("%v - %v\n", key, val)
 	}
 
 }

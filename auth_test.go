@@ -28,6 +28,27 @@ func TestCreateBaseUrl(t *testing.T) {
 	}
 }
 
+func TestBasicAuth(t *testing.T) {
+	tests := []struct {
+		InputA string
+		InputB string
+	}{
+		{
+			"a",
+			"2vefeefxwx",
+		}, {
+			"test",
+			"testing",
+		},
+	}
+	for _, test := range tests {
+		got := basicAuth(test.InputA, test.InputB)
+		if reflect.String != reflect.TypeOf(got).Kind() {
+			t.Errorf("basicAuth(string,string) failed to return a string")
+		}
+
+	}
+}
 func TestLogin(t *testing.T) {
 	var test = struct {
 		want   int

@@ -6,7 +6,6 @@ import (
 	"bufio"
 	"fmt"
 	"io"
-	"strings"
 )
 
 type ReadDevice struct {
@@ -21,14 +20,16 @@ func CreateDevice(stdin io.Reader) ReadDevice {
 }
 
 func (r *ReadDevice) GetInput() error {
+
 	reader := bufio.NewReader(r.Reader)
-	buf := new(strings.Builder)
-	_, err := io.Copy(buf, reader)
+
+	text, err := reader.ReadString('\n')
 
 	if err != nil {
 		return fmt.Errorf("Read device error: %v with io.Reader %v", err, r.Reader)
 	}
-	r.Input = buf.String()
+
+	r.Input = text
 	return nil
 
 }

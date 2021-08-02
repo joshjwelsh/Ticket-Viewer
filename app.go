@@ -11,7 +11,7 @@ func main() {
 	textPtr := flag.String("text", "", "Text to parse.")
 	fmt.Println(textPtr)
 
-	tickets, err := Get()
+	tickets, err := GetAllTickets()()
 	if err != nil {
 		log.Fatalf("Main failed on Get: %v", err)
 
@@ -20,12 +20,4 @@ func main() {
 		log.Fatalf("Main failed on Display: %v", err)
 	}
 
-}
-
-func Get() (*TicketResponse, error) {
-	GetAllTickets, err := GetAllTickets()()
-	if err != nil {
-		return &TicketResponse{}, fmt.Errorf("Get all Tickets call failed: %v", err)
-	}
-	return GetAllTickets, nil
 }

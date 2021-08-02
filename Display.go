@@ -18,7 +18,7 @@ func Display(stdin io.Reader, ticket []Ticket) error {
 		menu(CreateMainMenu())
 		reader := CreateDevice(stdin)
 
-		choice, err := contMainMenu(reader)
+		choice, err := cont(reader)
 		if err != nil {
 			return fmt.Errorf("Display crashed because of value returned by contMainMenu(): %v", err)
 		}
@@ -26,7 +26,7 @@ func Display(stdin io.Reader, ticket []Ticket) error {
 			clear()
 			reader = CreateDevice(stdin)
 			page := NewPage(ticket)()
-			paginate(reader, page)
+			paginate(&reader, page)
 		}
 		if strings.TrimRight(choice, "\n") == MENU_OPT_2 {
 			clear()
@@ -62,7 +62,7 @@ func selectOne(reader ReadDevice, ticket []Ticket) error {
 		}
 		display(page)
 		menu(CreateSelectMenu())
-		opt, err := contViewSelect(reader)
+		opt, err := cont(reader)
 		if err != nil {
 			return fmt.Errorf("Continue from view selected ticket failed while returning a value: %v", err)
 		}
@@ -104,7 +104,7 @@ func selectOnePrompt(reader ReadDevice, ticket []Ticket) (int, error) {
 }
 
 // lists all tickets to stdout
-func display(page *Page) {
+func display(page *Page) error {
 	funcMap := template.FuncMap{
 		// template func to create ticket number
 		"number": func(start int, end int) []int {
@@ -118,16 +118,17 @@ func display(page *Page) {
 	}
 	t, err := template.New("page.tmpl").Funcs(funcMap).ParseFiles("templates/page.tmpl")
 	if err != nil {
-		log.Fatalf("Error with template: %v", err)
+		return fmt.Errorf("Error with template: %v", err)
 	}
 	err = t.ExecuteTemplate(os.Stdout, "page.tmpl", *page)
 	if err != nil {
-		log.Fatalf("Page template failed: %v", err)
+		return fmt.Errorf("Page template failed: %v", err)
 	}
+	return nil
 }
 
 // handle listing tickets on pages
-func paginate(reader ReadDevice, page *Page) {
+func paginate(reader *ReadDevice, page *Page) {
 
 	// page := NewPage(ticket)()
 	for {
@@ -135,7 +136,7 @@ func paginate(reader ReadDevice, page *Page) {
 		display(page)
 
 		menu(CreateViewAllMenu())
-		choice, err := contViewAll(reader)
+		choice, err := cont(*reader)
 
 		if err != nil {
 			log.Fatalf("Continue from view all menu failed while returning a value: %v", err)
@@ -147,7 +148,6 @@ func paginate(reader ReadDevice, page *Page) {
 			page.PageBack()
 		}
 		if strings.TrimRight(choice, "\n") == MENU_OPT_3 {
-			log.Fatalln("We are here1")
 			break
 
 		}
@@ -155,38 +155,26 @@ func paginate(reader ReadDevice, page *Page) {
 	return
 
 }
+func cont(reader ReadDevice) (string, error) {
 
-// Get input from user
-func contViewSelect(reader ReadDevice) (string, error) {
 	err := reader.GetInput()
+	
 	if err != nil {
-		return "", fmt.Errorf("contViewSelect(io.Reader) got error from reader: %v", err)
-	}
-	return reader.Input, nil
-
-}
-
-func contViewAll(reader ReadDevice) (string, error) {
-	err := reader.GetInput()
-	if err != nil {
-		return "", fmt.Errorf("ContViewAll(io.Reader) got error from reader: %v", err)
-	}
-	return reader.Input, nil
-}
-
-func contMainMenu(reader ReadDevice) (string, error) {
-	err := reader.GetInput()
-	if err != nil {
-		return "", fmt.Errorf("contMainMenu(io.Reader) got error from reader: %v", err)
+		return "", fmt.Errorf("cont(ReadDevice) got error from reader: %v", err)
 	}
 	return reader.Input, nil
 }
 
 // clear terminal
-func clear() {
+func clear() bool {
 	c := exec.Command("clear")
 	c.Stdout = os.Stdout
-	c.Run()
+	err := c.Run()
+	if err != nil {
+		return false
+	} else {
+		return true
+	}
 }
 
 // pass menu template a menu struct and execute
