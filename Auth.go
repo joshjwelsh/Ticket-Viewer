@@ -53,7 +53,9 @@ func Login(method string, api string) (*http.Response, error) {
 	}
 	req.Header.Add("Authorization", "Basic "+basicAuth(email, pswd))
 	req.Header.Add("Content-Type", "application/json")
-	log.Println(req.URL.String())
+	if verbose {
+		log.Println(req.URL.String())
+	}
 	resp, err := client.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("client failed to execute request on url %v : %v", req.URL.String(), err)

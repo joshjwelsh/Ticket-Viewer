@@ -119,15 +119,15 @@ func TestCont(t *testing.T) {
 	tests := []struct {
 		Input string
 	}{
-		{"100"},
-		{"BIGDOG"},
-		{"walrus"},
+		{"100\n"},
+		{"BIGDOG\n"},
+		{"walrus\n"},
 	}
 	for _, test := range tests {
 		reader := MockStdin(test.Input)
 		device := CreateDevice(reader)
 		_, ok := cont(device)
-		assert.Nil(t, ok)
+		assert.Nil(t, ok, "Cont(ReadDevice) expected no nil but got an error.")
 	}
 
 }
@@ -144,6 +144,7 @@ func TestClear(t *testing.T) {
 	assert.True(t, ok)
 
 }
+
 // Helper
 func MockStdin(s string) io.Reader {
 	reader := strings.NewReader(s)
