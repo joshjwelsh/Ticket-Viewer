@@ -4,5 +4,8 @@ dev:
 build:
 	go build . 
 
-build+:
+run:
 	go build . && ./main
+
+test:
+	go test -cover *.go
