@@ -4,6 +4,8 @@ import (
 	"net/http"
 	"reflect"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestCreateBaseUrl(t *testing.T) {
@@ -59,11 +61,26 @@ func TestLogin(t *testing.T) {
 		"",
 		http.MethodGet,
 	}
-	got, err := Login(test.method, test.input)
+	mock := NewAuth()
+	got, err := mock.Login(test.method, test.input)
 	if err != nil {
 		t.Errorf("login(string,string) returned an error %v with url %v and method %v.\nExpected status code %v but received %v", err, got.Request.URL.String(), got.Request.Method, test.want, got.Status)
 	}
 	if got.StatusCode == test.want {
 		t.Errorf("login(string,string) returned an error %v with url %v and method %v.\nExpected status code %v but received %v", err, got.Request.URL.String(), got.Request.Method, test.want, got.Status)
 	}
+}
+
+func TestNewAuth(t *testing.T) {
+	auth := NewAuth()
+	assert.NotNil(t, auth, "Auth object should not be nil")
+}
+
+func TestNewCredentials(t *testing.T) {
+	cred, err := NewCredential()
+	assert.Nil(t, err)
+	assert.NotNil(t, cred)
+	assert.NotNil(t, cred.email)
+	assert.NotNil(t, cred.pswd)
+	assert.NotNil(t, cred.subDomain)
 }

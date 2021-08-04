@@ -11,27 +11,38 @@ import (
 	"text/template"
 )
 
-// handles display updates
-func Display(stdin io.Reader, ticket []Ticket) error {
+type Display struct {
+	input io.Reader
+	page  *Page
+}
+
+func NewDisplay(stdin io.Reader, data []Ticket) Display {
+	p := NewPage(data)()
+	return Display{
+		input: stdin,
+		page:  p,
+	}
+}
+
+func (d *Display) CLI() error {
 	for {
 		clear()
 		menu(CreateMainMenu())
-		reader := CreateDevice(stdin)
-
+		reader := CreateDevice(d.input)
 		choice, err := cont(reader)
 		if err != nil {
 			return fmt.Errorf("Display crashed because of value returned by contMainMenu(): %v", err)
 		}
+
 		if strings.TrimRight(choice, "\n") == MENU_OPT_1 {
 			clear()
-			reader = CreateDevice(stdin)
-			page := NewPage(ticket)()
-			paginate(&reader, page)
+			reader = CreateDevice(d.input)
+			paginate(&reader, d.page)
 		}
 		if strings.TrimRight(choice, "\n") == MENU_OPT_2 {
 			clear()
-			reader = CreateDevice(stdin)
-			err := selectOne(reader, ticket)
+			reader = CreateDevice(d.input)
+			err := selectOne(reader, d.page.FullSlice)
 			if err != nil {
 				return fmt.Errorf("Display crashed because of value returned by selectOne(): %v", err)
 			}
@@ -41,7 +52,6 @@ func Display(stdin io.Reader, ticket []Ticket) error {
 			fmt.Println("Exiting ticket viewer...Thanks for using it!")
 			break
 		}
-
 	}
 	return nil
 }
@@ -155,17 +165,19 @@ func paginate(reader *ReadDevice, page *Page) {
 	return
 
 }
+
+// Get user input
 func cont(reader ReadDevice) (string, error) {
 
 	err := reader.GetInput()
-	
+
 	if err != nil {
 		return "", fmt.Errorf("cont(ReadDevice) got error from reader: %v", err)
 	}
 	return reader.Input, nil
 }
 
-// clear terminal
+// clear terminal screen
 func clear() bool {
 	c := exec.Command("clear")
 	c.Stdout = os.Stdout
@@ -175,13 +187,4 @@ func clear() bool {
 	} else {
 		return true
 	}
-}
-
-// pass menu template a menu struct and execute
-func menu(m Menu) {
-	t, err := template.ParseFiles("templates/menu.tmpl")
-	if err != nil {
-		log.Fatalf("Error with template: %v", err)
-	}
-	t.Execute(os.Stdout, m)
 }
