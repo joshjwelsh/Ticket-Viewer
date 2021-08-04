@@ -59,7 +59,8 @@ func TestLogin(t *testing.T) {
 		"",
 		http.MethodGet,
 	}
-	got, err := Login(test.method, test.input)
+	mock := NewAuth()
+	got, err := mock.Login(test.method, test.input)
 	if err != nil {
 		t.Errorf("login(string,string) returned an error %v with url %v and method %v.\nExpected status code %v but received %v", err, got.Request.URL.String(), got.Request.Method, test.want, got.Status)
 	}

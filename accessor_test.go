@@ -7,7 +7,9 @@ import (
 )
 
 func TestGetAllTickets(t *testing.T) {
-	got, err := GetAllTickets()()
+	auth := NewAuth()
+	accessor := Accessor{}
+	err := accessor.GetAllTickets(auth)()
 	assert.Nil(t, err, "GetAllTickets expected to return no error but returned an error.")
-	assert.NotNil(t, got.Tickets, "GetAllTickets expected to return response object but got nil.")
+	assert.NotNil(t, accessor.Data, "GetAllTickets expected to return response object but got nil.")
 }

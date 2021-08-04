@@ -6,15 +6,18 @@ import (
 )
 
 func main() {
-	// textPtr := flag.String("text", "", "Text to parse.")
-	// fmt.Println(textPtr)
 
-	tickets, err := GetAllTickets()()
+	auth := NewAuth()
+	accessor := Accessor{}
+	err := accessor.GetAllTickets(auth)()
 	if err != nil {
 		log.Fatalf("Main failed on Get: %v", err)
 
 	}
-	if err := Display(os.Stdin, tickets.Tickets); err != nil {
+
+	display := NewDisplay(os.Stdin, *accessor.Data)
+
+	if err := display.CLI(); err != nil {
 		log.Fatalf("Main failed on Display: %v", err)
 	}
 
